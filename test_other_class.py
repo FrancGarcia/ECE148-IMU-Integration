@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from collections import deque
 
+import ekf_imu
+
 class ArtemisOpenLog:
     def __init__(self, port, baudrate, timeout):
         assert(isinstance(port, str)), "Port must be a valid string input"
@@ -16,6 +18,7 @@ class ArtemisOpenLog:
         self.gyro = { 'x' : 0, 'y': 0, 'z': 0}
         self.gyro_smooth = { 'x' : 0, 'y': 0, 'z': 0}
         self.euler = { 'x': 0, 'y': 0, 'z': 0}
+        self.mag = { 'x': 0, 'y': 0, 'z': 0}
         self.accel_x = deque(maxlen=100)
         self.accel_y = deque(maxlen=100)
         self.accel_z = deque(maxlen=100)
@@ -42,10 +45,20 @@ class ArtemisOpenLog:
         try:
             self.accel = { 'x' : float(data[2]) * 0.00981, 'y' : float(data[3]) * 0.00981, 'z' : float(data[4]) * 0.00981 }
             self.gyro = { 'x': float(data[5]), 'y': float(data[6]), 'z': float(data[7]) }
+            self.mag = { 'x': float(data[8]), 'y': float(data[9]), 'z': float(data[10]) }
             # Noisy gyroscope data
             self.gyro_x.append(self.gyro['x'])
             self.gyro_y.append(self.gyro['y'])
             self.gyro_z.append(self.gyro['z'])
+
+            ekf = ekf_imu.EKF_IMU(dt=0.01)
+            g = np.array([v for v in self.gyro.values()])
+            ekf.predict(g)
+            a = np.array([v for v in self.accel.values()])
+            m = np.array([v for v in self.mag.values()])
+            ekf.update(a, m) 
+            euls = ekf.get_euler_angles()
+            self.euler = { 'x' : float(euls[0]), 'y': float(euls[1]), 'z': float(euls[2])}
 
             # Smooth gyroscope data
             x = np.zeros(3) 
@@ -168,15 +181,17 @@ if __name__ == "__main__":
     artemis_imu = ArtemisOpenLog(SERIAL_PORT, 115200, 1)
 
     # For plotting the gyroscope data
-    log_data()
-    artemis_imu.shutdown()
+    #log_data()
+    #artemis_imu.shutdown()
     
-    # try:
-    #     while True:
-    #         gyro, accel = artemis_imu.run()
-    #         print(f"Gyro: {gyro}, Accel: {accel}")
-    #         time.sleep(0.1)
-    # except KeyboardInterrupt:
-    #      logger.info("\nShutting down...")
-    #      artemis_imu.shutdown()
+    try:
+        while True:
+            gyro, accel = artemis_imu.run()
+            print(f"Gyro: {gyro}, Accel: {accel}")
+            euler_angles = artemis_imu.euler
+            print(f"Eulers: {euler_angles}")
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+         logger.info("\nShutting down...")
+         artemis_imu.shutdown()
 
