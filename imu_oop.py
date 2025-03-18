@@ -418,7 +418,10 @@ def log_data(imu: ArtemisOpenLog, interval_time, log_type: str):
     plt.show()
 
 if __name__ == "__main__":
-    artemis_imu = ArtemisOpenLog("COM9", 115200, 1)
+
+    SERIAL_PORT = "COM9" # Used Windows OS
+    SERIAL_PORT = "/dev/ttyUSB2" # Used for Jetson Nano 
+    artemis_imu = ArtemisOpenLog(SERIAL_PORT, 115200, 1)
     
     # Calibrate the IMU first
     #gyro_offset, accel_offset = calibrate_artemis(artemis_imu, 60, calibrate_gyro=True, calibrate_accel=False)
