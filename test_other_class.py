@@ -14,11 +14,15 @@ class ArtemisOpenLog:
         self.ser = None
         self.accel = { 'x': 0, 'y': 0, 'z': 0}
         self.gyro = { 'x' : 0, 'y': 0, 'z': 0}
+        self.gyro_smooth = { 'x' : 0, 'y': 0, 'z': 0}
         self.euler = { 'x': 0, 'y': 0, 'z': 0}
         self.accel_x = deque(maxlen=100)
         self.accel_y = deque(maxlen=100)
         self.accel_z = deque(maxlen=100)
         # Gyroscope data is in degrees per second
+        self.gyro_x_s = deque(maxlen=100)
+        self.gyro_y_s = deque(maxlen=100)
+        self.gyro_z_s = deque(maxlen=100)
         self.gyro_x = deque(maxlen=100)
         self.gyro_y = deque(maxlen=100)
         self.gyro_z = deque(maxlen=100)
@@ -38,16 +42,23 @@ class ArtemisOpenLog:
         try:
             self.accel = { 'x' : float(data[2]) * 0.00981, 'y' : float(data[3]) * 0.00981, 'z' : float(data[4]) * 0.00981 }
             self.gyro = { 'x': float(data[5]), 'y': float(data[6]), 'z': float(data[7]) }
-            # x = np.zeros(3) 
-            # P = np.eye(3)  
-            # Q = np.eye(3) * 0.001  
-            # R = np.eye(3) * 10 
-            # z = np.array([self.gyro['x'], self.gyro['y'], self.gyro['z']])
-            # x, P = self.kalman_filter_gyro(x, P, z, Q, R)
-            # self.gyro = { 'x': x[0], 'y': x[1], 'z': x[2] }
+            # Noisy gyroscope data
             self.gyro_x.append(self.gyro['x'])
             self.gyro_y.append(self.gyro['y'])
             self.gyro_z.append(self.gyro['z'])
+
+            # Smooth gyroscope data
+            x = np.zeros(3) 
+            P = np.eye(3)  
+            Q = np.eye(3) * 0.001  
+            R = np.eye(3) * 10 
+            z = np.array([self.gyro['x'], self.gyro['y'], self.gyro['z']])
+            x, P = self.kalman_filter_gyro(x, P, z, Q, R)
+            self.gyro_smooth = { 'x': x[0], 'y': x[1], 'z': x[2] }
+            self.gyro_x_s.append(self.gyro_smooth['x'])
+            self.gyro_y_s.append(self.gyro_smooth['y'])
+            self.gyro_z_s.append(self.gyro_smooth['z'])
+            
         except IndexError:
             logger.error("Waiting for IMU data to parse")
         except ValueError:
@@ -120,20 +131,29 @@ def log_data():
     try:
         def update_plot(_):
             artemis_imu.poll()
-            line_gx.set_data(range(len(artemis_imu.gyro_x)), list(artemis_imu.gyro_x))
-            line_gy.set_data(range(len(artemis_imu.gyro_y)), list(artemis_imu.gyro_y))
+            # line_gx.set_data(range(len(artemis_imu.gyro_x)), list(artemis_imu.gyro_x))
+            # line_gy.set_data(range(len(artemis_imu.gyro_y)), list(artemis_imu.gyro_y))
             line_gz.set_data(range(len(artemis_imu.gyro_z)), list(artemis_imu.gyro_z))
 
+            # line_gx_s.set_data(range(len(artemis_imu.gyro_x_s)), list(artemis_imu.gyro_x_s))
+            # line_gy_s.set_data(range(len(artemis_imu.gyro_y_s)), list(artemis_imu.gyro_y_s))
+            line_gz_s.set_data(range(len(artemis_imu.gyro_z_s)), list(artemis_imu.gyro_z_s))
+
             ax.set_xlim(0, len(artemis_imu.gyro_x))
-            return line_gx, line_gy, line_gz
+            # return line_gx, line_gy, line_gz, line_gx_s, line_gy_s, line_gz_s
+            return line_gz, line_gz_s
 
         fig, ax = plt.subplots()
         ax.set_xlabel("Time")
         ax.set_ylabel("Gyroscope (deg/s)")
         ax.set_ylim(-10, 10)
-        line_gx, = ax.plot([], [], label="gX", color="r")
-        line_gy, = ax.plot([], [], label="gY", color="g")
+        # line_gx, = ax.plot([], [], label="gX", color="r")
+        # line_gy, = ax.plot([], [], label="gY", color="g")
         line_gz, = ax.plot([], [], label="gZ", color="b")
+
+        # line_gx_s, = ax.plot([], [], label="gX_s", color="orange")
+        # line_gy_s, = ax.plot([], [], label="gY_s", color="purple")
+        line_gz_s, = ax.plot([], [], label="gZ_s", color="red")        
         ax.legend()
 
         ani = animation.FuncAnimation(fig, update_plot, interval=5, blit=True, cache_frame_data=False)
