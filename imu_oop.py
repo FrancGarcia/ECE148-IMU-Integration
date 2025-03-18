@@ -392,17 +392,11 @@ def log_data(imu: ArtemisOpenLog, interval_time, log_type: str):
         ax.legend()
 
         def update_plot(_):
-            # Downsample the data to reduce the number of points being plotted
-            downsample_factor = 5
-            accel_x = list(imu.accel_x)[::downsample_factor]
-            accel_y = list(imu.accel_y)[::downsample_factor]
-            accel_z = list(imu.accel_z)[::downsample_factor]
+            line_ax.set_data(range(len(imu.accel_x)), list(imu.accel_x))
+            line_ay.set_data(range(len(imu.accel_y)), list(imu.accel_y))
+            line_az.set_data(range(len(imu.accel_z)), list(imu.accel_z))
 
-            line_ax.set_data(range(len(accel_x)), accel_x)
-            line_ay.set_data(range(len(accel_y)), accel_y)
-            line_az.set_data(range(len(accel_z)), accel_z)
-
-            ax.set_xlim(0, len(accel_x))
+            ax.set_xlim(0, len(imu.accel_x))
             return line_ax, line_ay, line_az
     
     elif log_type == "gyro":
@@ -413,17 +407,11 @@ def log_data(imu: ArtemisOpenLog, interval_time, log_type: str):
         ax.legend()
 
         def update_plot(_):
-            # Downsample the data to reduce the number of points being plotted
-            downsample_factor = 5
-            gyro_x = list(imu.gyro_x)[::downsample_factor]
-            gyro_y = list(imu.gyro_y)[::downsample_factor]
-            gyro_z = list(imu.gyro_z)[::downsample_factor]
+            line_gx.set_data(range(len(imu.gyro_x)), list(imu.gyro_x))
+            line_gy.set_data(range(len(imu.gyro_y)), list(imu.gyro_y))
+            line_gz.set_data(range(len(imu.gyro_z)), list(imu.gyro_z))
 
-            line_gx.set_data(range(len(gyro_x)), gyro_x)
-            line_gy.set_data(range(len(gyro_y)), gyro_y)
-            line_gz.set_data(range(len(gyro_z)), gyro_z)
-
-            ax.set_xlim(0, len(gyro_x))
+            ax.set_xlim(0, len(imu.gyro_x)) 
             return line_gx, line_gy, line_gz
 
     ani = animation.FuncAnimation(fig, update_plot, interval=interval_time, blit=True, cache_frame_data=False)
