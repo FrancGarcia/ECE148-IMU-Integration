@@ -420,7 +420,7 @@ def log_data(imu: ArtemisOpenLog, interval_time, log_type: str):
 if __name__ == "__main__":
 
     SERIAL_PORT = "COM9" # Used Windows OS
-    SERIAL_PORT = "/dev/ttyUSB2" # Used for Jetson Nano 
+    #SERIAL_PORT = "/dev/ttyUSB2" # Used for Jetson Nano 
     artemis_imu = ArtemisOpenLog(SERIAL_PORT, 115200, 1)
     
     # Calibrate the IMU first
