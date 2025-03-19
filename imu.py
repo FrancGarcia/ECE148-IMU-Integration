@@ -42,6 +42,7 @@ class ArtemisOpenLog:
             logger.error(f"Error: {e}")
         except KeyboardInterrupt:
             logger.info("\nExiting...")
+            self.shutdown()
 
     def poll(self):
         """
@@ -149,7 +150,6 @@ class ArtemisOpenLog:
         if self.ser:
             self.ser.close()
             logger.info("Closed serial connection")
-
 # ---------- Free Functions ---------- #
 
 def log_data(artemis_imu: ArtemisOpenLog):
