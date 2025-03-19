@@ -47,6 +47,7 @@ class ArtemisOpenLog:
         """
         Reads the IMU data. Sets the Artemis IMU object fields to the data readings.
         """
+        self.ser.reset_input_buffer()        
         data = self.ser.readline().decode('utf-8').strip().split(",")
         try:
             self.accel = { 'x' : float(data[2]) * 0.00981, 'y' : float(data[3]) * 0.00981, 'z' : float(data[4]) * 0.00981 }
@@ -265,8 +266,8 @@ def log_data_euler(artemis_imu: ArtemisOpenLog):
 
 if __name__ == "__main__":
 
-    SERIAL_PORT = "COM9" # Used Windows OS
-    #SERIAL_PORT = "/dev/ttyUSB2" # Used for Jetson Nano 
+    #SERIAL_PORT = "COM9" # Used Windows OS
+    SERIAL_PORT = "/dev/ttyUSB0" # Used for Jetson Nano 
     artemis_imu = ArtemisOpenLog(SERIAL_PORT, 115200, 1)
 
     # For plotting the gyroscope data
@@ -279,8 +280,8 @@ if __name__ == "__main__":
         while True:
             euler, accel, gyro = artemis_imu.run()
             print(f"Gyro: {gyro}, Accel: {accel}")
-            print(f"Eulers: {euler}")
-            time.sleep(1)
+            #print(f"Eulers: {euler}")
+            time.sleep(0.1)
     except KeyboardInterrupt:
          logger.info("\nShutting down...")
          artemis_imu.shutdown()
