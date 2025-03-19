@@ -9,10 +9,11 @@ from collections import deque
 import ekf_imu
 
 class ArtemisOpenLog:
-    def __init__(self, port, baudrate, timeout):
+    # Constructor
+    def __init__(self, port, baudrate, time):
         assert(isinstance(port, str)), "Port must be a valid string input"
         assert(isinstance(baudrate, int) and baudrate > 0), "Baudrate must be valid int"
-        assert((isinstance(timeout, int) or isinstance(timeout, float)) and timeout > 0), "timeout time must be valid number greater than 0" 
+        assert((isinstance(time, int) or isinstance(time, float)) and time > 0), "timeout time must be valid number greater than 0" 
         self.ser = None
         self.accel = { 'x': 0, 'y': 0, 'z': 0}
         self.gyro = { 'x' : 0, 'y': 0, 'z': 0}
@@ -30,7 +31,7 @@ class ArtemisOpenLog:
         self.gyro_y = deque(maxlen=100)
         self.gyro_z = deque(maxlen=100)
         try:
-            self.ser = serial.Serial(port, baudrate, timeout=timeout)  # Fix: pass timeout as a keyword argument
+            self.ser = serial.Serial(port, baudrate, timeout=time)  # Fix: pass timeout as a keyword argument
             logger.info(f"Connected to {port}")
         except serial.SerialException as e:
             logger.error(f"Error: {e}")
@@ -140,7 +141,13 @@ class ArtemisOpenLog:
 
 # ---------- Free Functions ---------- #
 
-def log_data():
+def log_data(artemis_imu: ArtemisOpenLog):
+    """
+    Plots the data in real time.
+
+    :param: artemis_imu
+        The ArtemisOpenLog object to use to collect the data.
+    """
     try:
         def update_plot(_):
             artemis_imu.poll()
@@ -181,16 +188,16 @@ if __name__ == "__main__":
     artemis_imu = ArtemisOpenLog(SERIAL_PORT, 115200, 1)
 
     # For plotting the gyroscope data
-    #log_data()
-    #artemis_imu.shutdown()
+    log_data(artemis_imu)
+    artemis_imu.shutdown()
     
-    try:
-        while True:
-            euler, accel, gyro = artemis_imu.run()
-            print(f"Gyro: {gyro}, Accel: {accel}")
-            print(f"Eulers: {euler}")
-            time.sleep(0.1)
-    except KeyboardInterrupt:
-         logger.info("\nShutting down...")
-         artemis_imu.shutdown()
+    # try:
+    #     while True:
+    #         euler, accel, gyro = artemis_imu.run()
+    #         print(f"Gyro: {gyro}, Accel: {accel}")
+    #         print(f"Eulers: {euler}")
+    #         time.sleep(0.1)
+    # except KeyboardInterrupt:
+    #      logger.info("\nShutting down...")
+    #      artemis_imu.shutdown()
 

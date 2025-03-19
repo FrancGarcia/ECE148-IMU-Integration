@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 class EKF_IMU:
+    color = "red"
     def __init__(self, dt):
         self.dt = dt  
         # State vector: quaternion [qw, qx, qy, qz]
