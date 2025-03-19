@@ -119,7 +119,7 @@ class ArtemisOpenLog:
             Gyroscope readings as a dictionary, Acceleration readings as a dictionary
         """
         self.poll()
-        return self.gyro, self.accel
+        return self.euler, self.accel, self.gyro
 
     def run_threaded(self):
         """
@@ -128,7 +128,7 @@ class ArtemisOpenLog:
         :return: dict of floats, dict of floats
             Gyroscope readings as a dictionary, Acceleration readings as a dictionary
         """
-        return self.gyro, self.accel
+        return self.euler, self.accel, self.gyro
 
     def shutdown(self):
         """
@@ -186,10 +186,9 @@ if __name__ == "__main__":
     
     try:
         while True:
-            gyro, accel = artemis_imu.run()
+            euler, accel, gyro = artemis_imu.run()
             print(f"Gyro: {gyro}, Accel: {accel}")
-            euler_angles = artemis_imu.euler
-            print(f"Eulers: {euler_angles}")
+            print(f"Eulers: {euler}")
             time.sleep(0.1)
     except KeyboardInterrupt:
          logger.info("\nShutting down...")
